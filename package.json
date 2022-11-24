@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/server.js",
+    "create_database": "node src/databases/create_database.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,6 +21,8 @@
   "dependencies": {
     "body-parser": "^1.20.1",
     "dotenv": "^16.0.3",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "fs": "^0.0.1-security",
+    "pg": "^8.8.0"
   }
 }
