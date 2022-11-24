@@ -1,0 +1,19 @@
+{
+  "name": "devskillsback_nctest",
+  "version": "1.0.0",
+  "description": "- [Rodríguez, Manuel Joaquín](https://github.com/rodriguezmanueljoaquin)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rodriguezmanueljoaquin/devskillsback_nctest.git"
+  },
+  "author": "Rodríguez, Manuel Joaquín",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rodriguezmanueljoaquin/devskillsback_nctest/issues"
+  },
+  "homepage": "https://github.com/rodriguezmanueljoaquin/devskillsback_nctest#readme"
+}
