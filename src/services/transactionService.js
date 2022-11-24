@@ -16,8 +16,8 @@ function validateTransactionPost(body) {
 }
 
 function validateTransactionPayment(body) {
-    const { amount, payment_method, date, bar_code } = body;
-    if (!amount || !payment_method || !date || !bar_code) {
+    const { amount, payment_method, pay_date, bar_code } = body;
+    if (!amount || !payment_method || !pay_date || !bar_code) {
         return false;
     }
     // check type existence, should have more types
@@ -31,10 +31,39 @@ function validateTransactionPayment(body) {
     return true;
 }
 
-async function getTransactions() {
+async function getTransactions(status, type) {
     const db = pqslDB.getDB();
-    const transactions = await db.query("SELECT * FROM transactions");
+
+    let answer = "due_date, amount, bar_code";
+
+    let restriction = "";
+    if (status || type) {
+        restriction += " WHERE";
+        if (status) {
+            restriction += ` status = '${status}'`;
+            if (type) {
+                restriction += ` AND `;
+            }
+        } 
+        if (type) {
+            answer += ",type "
+            restriction += ` type = '${type}'`;
+        }
+    }
+    const transactions = await db.query(`SELECT ${answer} FROM transactions ${restriction}`);
     return transactions.rows;
+}
+
+async function getTransactionsAccumulatedBetweenDates(start_date, end_date) {
+    let start_date_formatted = new Date(start_date).toISOString().split("T")[0];
+    let end_date_formatted = new Date(end_date).toISOString().split("T")[0];
+    const db = pqslDB.getDB();
+    const transactionsAccumulated = await db.query(
+        "SELECT pay_date, SUM(amount) AS accumulated_amount, COUNT(*) AS quantity FROM transactions \
+        WHERE due_date BETWEEN $1 AND $2 GROUP BY pay_date",
+        [start_date_formatted, end_date_formatted]
+    );
+    return transactionsAccumulated.rows;
 }
 
 async function getTransaction(bar_code) {
@@ -43,9 +72,10 @@ async function getTransaction(bar_code) {
     return transactions.rows;
 }
 
-async function payTransaction(bar_code) {
+async function payTransaction(bar_code, pay_date) {
     const db = pqslDB.getDB();
-    const transaction = await db.query("UPDATE transactions SET status = 'paid' WHERE bar_code = $1 RETURNING *" , [bar_code]);
+    const transaction = await db.query("UPDATE transactions SET status = 'paid', pay_date = $1 \
+                WHERE bar_code = $2 RETURNING *" , [new Date(pay_date).toISOString(), bar_code]);
     return transaction.rows[0];
 }
 
@@ -72,5 +102,6 @@ module.exports = {
     getTransaction,
     getTransactions,
     createTransaction,
+    getTransactionsAccumulatedBetweenDates,
     payTransaction
 };

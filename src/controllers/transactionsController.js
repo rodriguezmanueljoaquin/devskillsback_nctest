@@ -2,16 +2,22 @@ const transactionsService = require("../services/transactionService");
 
 
 async function getTransactions(req, res, next) {
-    const transactions = await transactionsService.getTransactions();
+    const status = req.query.status;
+    const type = req.query.type;
+
+    const transactions = await transactionsService.getTransactions(status, type);
     res.json(transactions);
 }
 
-async function checkTransactionExistence(bar_code, exists_callback, not_exists_callback) {
-    const transactions = await transactionsService.getTransaction(bar_code);
-    if(transactions)
-        exists_callback();
-    else
-        not_exists_callback();
+async function getTransactionsAccumulatedBetweenDates(req, res, next) {
+    const start_date = req.query.start_date;
+    const end_date = req.query.end_date;
+
+    if(!start_date || !end_date) 
+        return res.status(400).json({message: "start_date and end_date are required"});
+        
+    const transactions = await transactionsService.getTransactionsAccumulatedBetweenDates(start_date, end_date);
+    res.json(transactions);
 }
 
 async function payTransaction(req, res, next) {
@@ -30,11 +36,11 @@ async function payTransaction(req, res, next) {
         return res.status(400).json({message: "Transaction already paid"});
     if(transaction.amount != body.amount)
         return res.status(400).json({message: "Invalid amount"});
-    if(new Date(transaction.due_date) < new Date(body.date))
+    if(new Date(transaction.due_date) < new Date(body.pay_date))
         return res.status(400).json({message: "Payment date is after due date"});
 
     try {
-        const newTransaction = await transactionsService.payTransaction(body.bar_code);
+        const newTransaction = await transactionsService.payTransaction(body.bar_code, body.pay_date);
         res.json(newTransaction);
     }
     catch (error) {
@@ -64,6 +70,7 @@ async function postTransaction(req, res, next) {
 
 module.exports = {
     getTransactions,
+    getTransactionsAccumulatedBetweenDates,
     postTransaction,
     payTransaction
 }
