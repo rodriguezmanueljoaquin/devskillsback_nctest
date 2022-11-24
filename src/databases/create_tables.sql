@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS transactions(
     type TEXT NOT NULL,
     description TEXT NOT NULL,
     due_date DATE NOT NULL,
-    payment_date DATE,
+    pay_date DATE,
     amount INTEGER NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending'
 );
