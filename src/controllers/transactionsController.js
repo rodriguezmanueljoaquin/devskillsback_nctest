@@ -15,7 +15,9 @@ async function getTransactionsAccumulatedBetweenDates(req, res, next) {
 
     if(!start_date || !end_date) 
         return res.status(400).json({message: "start_date and end_date are required"});
-        
+    if(new Date(start_date) > new Date(end_date))
+        return res.status(400).json({message: "start_date must be before end_date"});
+
     const transactions = await transactionsService.getTransactionsAccumulatedBetweenDates(start_date, end_date);
     res.json(transactions);
 }
