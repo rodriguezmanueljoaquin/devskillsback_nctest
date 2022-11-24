@@ -2,21 +2,25 @@ const fs = require('fs');
 const { Client } = require('pg');
 const { exit } = require('process');
 
-let postgres;
+let _client;
 
-init();
+function getDB() {
+    if (_client) {
+      return _client;
+    }
+    throw new Error("PostgreSQL: No database found!");
+};
 
-function init(){
-    (async() => {
-        await createDatabase().then(async() =>{
-            postgres.end();
-        })
-    })();
+async function closeConnection() {
+    if(_client) {
+        await _client.close();
+        return;
+    }
+    throw new Error("PostgreSQL: No connection was found!");
 }
 
-async function getDBConnection(){
+async function startDBConnection(){
     let credentials = JSON.parse(fs.readFileSync('src/databases/credentials.json'));
-    console.log(credentials)
     const client = new Client(credentials);
 
     try{
@@ -30,20 +34,26 @@ async function getDBConnection(){
 
 }
 
-async function createDatabase(){
-    postgres = await getDBConnection();
+async function connect(){
+    _client = await startDBConnection();
     
     console.log('Connection succesfully to PostgreSQL database');
     
     //creation of tables
     var createTablesQuery = fs.readFileSync('src/databases/create_tables.sql').toString();
-    await postgres.query(createTablesQuery)
+    await _client.query(createTablesQuery)
 
     .catch((e) => {
         console.log(`Error creating import tables: ${e}`);
-        postgres.end();
-        process.exit(-1);
+        _client.end();
+        _client.exit(-1);
     });
 
     console.log('Tables succesfully created');
+}
+
+module.exports = {
+    connect,
+    getDB,
+    closeConnection
 }
